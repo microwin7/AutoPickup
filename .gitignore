@@ -8,11 +8,6 @@ build
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
-*.jar
-*.war
-*.ear
-
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
@@ -25,6 +20,7 @@ hs_err_pid*
 .idea/tasks.xml
 .idea/dictionaries
 .idea/jsLibraryMappings.xml
+.idea/gradle.xml
 target/
 
 # Sensitive or high-churn files:
@@ -36,8 +32,6 @@ target/
 .idea/uiDesigner.xml
 
 # Gradle:
-.idea/gradle.xml
-.idea/libraries
 .gradle/
 
 # Mongo Explorer plugin:
@@ -65,7 +59,6 @@ crashlytics-build.properties
 fabric.properties
 
 # Eclipse
-
 .metadata
 bin/
 tmp/
