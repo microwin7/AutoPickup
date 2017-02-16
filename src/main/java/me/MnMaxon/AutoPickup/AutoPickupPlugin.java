@@ -16,31 +16,60 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.*;
 
 public final class AutoPickupPlugin extends JavaPlugin {
+
+    //TODO: how many of these really need to be static?
     public static String dataFolder;
     public static AutoPickupPlugin plugin;
-    public static boolean infinityPick = false, deleteOnFull = true, warnOnFull = false, autoBlockXp = true, autoMob = true, autoMobXP = true, extraInfo = false,
-            usingQuickSell = false, smeltFortune = false, usingCompat = false, usingAutoSell = false, usingStackableItems = false, usingPrisonGems = false;
-    public static SuperYaml MainConfig, MessageConfig, SmeltConfig, WorldConfig, FortuneConfig, FortuneData = null;
-    public static List<String> autoSmelt = new ArrayList<>(), autoPickup = new ArrayList<>(), autoBlock = new ArrayList<>(), autoSell = new ArrayList<>();
+    public static boolean infinityPick = false;
+    public static boolean deleteOnFull = true;
+    public static boolean warnOnFull = false;
+    public static boolean autoBlockXp = true; 
+    public static boolean autoMob = true;
+    public static boolean autoMobXP = true;
+    public static boolean extraInfo = false;
+    public static boolean usingQuickSell = false;
+    public static boolean smeltFortune = false;
+    public static boolean usingCompat = false;
+    public static boolean usingAutoSell = false;
+    public static boolean usingStackableItems = false;
+    public static boolean usingPrisonGems = false;
+    public static SuperYaml MainConfig;
+    public static SuperYaml MessageConfig;
+    public static SuperYaml SmeltConfig;
+    public static SuperYaml WorldConfig; 
+    public static SuperYaml FortuneConfig;
+    public static SuperYaml FortuneData = null;
+    public static List<String> autoSmelt = new ArrayList<>();
+    public static List<String> autoPickup = new ArrayList<>();
+    public static List<String> autoBlock = new ArrayList<>();
+    public static List<String> autoSell = new ArrayList<>();
     public static HashMap<String, Long> warnCooldown = new HashMap<>();
     public static HashMap<Material, Short> smeltBlacklist = new HashMap<>();
-    private static List<String> blockedWorlds = new ArrayList<>();
     public static List<Material> fortuneList = new ArrayList<>();
     public static List<String> smeltList = new ArrayList<>();
     public static Boolean allowBlockGui;
     public static Boolean autoChest;
 
+    private static List<String> blockedWorlds = new ArrayList<>();
+
 
     public static void reloadConfigs() {
+
+        //open the config files
         MainConfig = new SuperYaml(dataFolder + "/Config.yml");
         MessageConfig = new SuperYaml(dataFolder + "/Messages.yml");
         SmeltConfig = new SuperYaml(dataFolder + "/Smelt Blacklist.yml");
         WorldConfig = new SuperYaml(dataFolder + "/World Blacklist.yml");
         FortuneConfig = new SuperYaml(dataFolder + "/Advanced Fortune.yml");
-        if (FortuneData != null) FortuneData.save();
+        if (FortuneData != null)
+        {
+            FortuneData.save();
+        }
+
         FortuneData = null;
         Message.setup();
 
+        //TODO: do these replace the static bools?
         HashMap<String, Object> defaults = new HashMap<>();
         defaults.put("Infinity Pick", false);
         defaults.put("Gui.Contact Info", true);
@@ -53,16 +82,21 @@ public final class AutoPickupPlugin extends JavaPlugin {
         defaults.put("Block AutoXP", true);
         defaults.put("Allow BlockGui Permission", false);
         defaults.put("Auto Chest", true);
+
         for (Map.Entry<String, Object> entry : defaults.entrySet())
+        {
             if (MainConfig.get(entry.getKey()) == null) {
                 MainConfig.set(entry.getKey(), entry.getValue());
                 MainConfig.save();
             }
+        }
 
+        //check if configs are there, if not make defaults
         if (SmeltConfig.get("Enable Blacklist") == null) {
             SmeltConfig.set("Enable Blacklist", true);
             SmeltConfig.save();
         }
+        
         if (FortuneConfig.get("Info") == null) {
             FortuneConfig.set("Info", Arrays.asList("Smelt Fortune means if you have autosmelt on, when you mine something like an iron ore, fortune effects will work on it, meaning you would get more iron ingots if you had fortune",
                     "Fortune all allows to add make fortune work on anything.  For example, you could mine a gold ore with a fortune pick, and get few gold ores as the result.",
@@ -95,6 +129,9 @@ public final class AutoPickupPlugin extends JavaPlugin {
             WorldConfig.set("Blacklist", Arrays.asList("ExampleWorld", "2nd_Example"));
             WorldConfig.save();
         }
+
+
+        // are we autoblocking Quartz
         if (MainConfig.getBoolean("AutoBlock Quartz")) {
             AutoBlock.convertTo.put(Material.QUARTZ, Material.QUARTZ_BLOCK);
             AutoBlock.convertNum.put(Material.QUARTZ, 4);
@@ -102,13 +139,44 @@ public final class AutoPickupPlugin extends JavaPlugin {
             AutoBlock.convertTo.remove(Material.QUARTZ);
             AutoBlock.convertNum.remove(Material.QUARTZ);
         }
-        if (MainConfig.getBoolean("AutoSmelt Compat Mode")) smeltList.clear();
-        else smeltList = Arrays.asList("SMOOTH_BRICK", "RAW_FISH", "REDSTONE_ORE", "POTATO_ITEM",
-                "RAW_CHICKEN", "SPONGE", "DIAMOND_ORE", "LOG", "CACTUS", "RAW_FISH", "LAPIS_ORE", "SAND", "IRON_ORE",
-                "MUTTON", "QUARTZ_ORE", "COAL_ORE", "GOLD_ORE", "NETHERRACK", "LOG_2", "RAW_BEEF", "CLAY_BALL",
-                "COBBLESTONE", "EMERALD_ORE", "RABBIT", "CLAY", "PORK");
+
+
+        if (MainConfig.getBoolean("AutoSmelt Compat Mode"))
+        {
+            smeltList.clear();
+        } else 
+        {
+            //the blocks we autosmelt
+            smeltList = Arrays.asList("SMOOTH_BRICK",
+                                      "SPONGE",
+                                      "SAND",
+                                      "NETHERRACK",
+                                      "LOG",
+                                      "LOG_2",
+                                      "CLAY",
+                                      "CLAY_BALL",
+                                      "COBBLESTONE",
+                                      "EMERALD_ORE", //ores
+                                      "REDSTONE_ORE",
+                                      "DIAMOND_ORE",
+                                      "LAPIS_ORE",
+                                      "IRON_ORE",
+                                      "QUARTZ_ORE",
+                                      "COAL_ORE",
+                                      "GOLD_ORE",
+                                      "RAW_FISH",  //foods
+                                      "POTATO_ITEM",
+                                      "RAW_CHICKEN",
+                                      "RAW_BEEF",
+                                      "CACTUS",
+                                      "RABBIT",
+                                      "MUTTON",
+                                      "PORK");
+        }
+
         smeltFortune = FortuneConfig.getBoolean("Smelt Fortune");
         fortuneList.clear();
+
         if (FortuneConfig.getBoolean("Fortune All")) {
             FortuneData = new SuperYaml(dataFolder + "/Fortune Data");
             for (Object o : FortuneConfig.config.getList("Fortune All Whitelist"))
@@ -119,26 +187,52 @@ public final class AutoPickupPlugin extends JavaPlugin {
                     else fortuneList.add(material);
                 }
         }
+
         extraInfo = MainConfig.getBoolean("Gui.Contact Info");
+
+        //the blacklist of worlds the plugin will not work in
         blockedWorlds.clear();
-        if (WorldConfig.getBoolean("Enable Blacklist")) for (Object raw : WorldConfig.config.getList("Blacklist"))
-            if (raw instanceof String) blockedWorlds.add((String) raw);
+        if (WorldConfig.getBoolean("Enable Blacklist")) 
+        { 
+            for (Object raw : WorldConfig.config.getList("Blacklist"))
+            {
+                if (raw instanceof String) 
+                {
+                    blockedWorlds.add((String) raw);
+                }
+            }
+        }
+
+        //smelting Blacklist
         smeltBlacklist.clear();
-        if (SmeltConfig.getBoolean("Enable Blacklist")) for (Object raw : SmeltConfig.config.getList("Blacklist")) {
-            if (!(raw instanceof String)) continue;
+        if (SmeltConfig.getBoolean("Enable Blacklist")) for (Object raw : SmeltConfig.config.getList("Blacklist"))
+        {
+            if (!(raw instanceof String))
+            {
+                continue;
+            }
             String[] split = ((String) raw).split(":");
             Material mat = Material.matchMaterial(split[0]);
-            if (mat == null) {
+            if (mat == null)
+            {
                 Bukkit.getLogger().severe(ChatColor.RED + "[AutoPickup] The blacklist item: '" + split[0] + "' could not be found");
                 continue;
             }
+
             short data = -1;
-            if (split.length > 1) try {
-                data = Short.valueOf(split[1].replace(" ", ""));
-            } catch (NumberFormatException ex) {
-                Bukkit.getLogger().severe(ChatColor.RED + "[AutoPickup] The blacklist item: '" + raw + "' does not have a valid data number");
-                data = -1;
+
+            if (split.length > 1) 
+            {
+                try
+                {
+                    data = Short.valueOf(split[1].replace(" ", ""));
+                } catch (NumberFormatException ex)
+                {
+                    Bukkit.getLogger().severe(ChatColor.RED + "[AutoPickup] The blacklist item: '" + raw + "' does not have a valid data number");
+                    data = -1;
+                }
             }
+
             smeltBlacklist.put(mat, data);
         }
         infinityPick = MainConfig.getBoolean("Infinity Pick");
