@@ -20,6 +20,7 @@ public final class AutoPickupPlugin extends JavaPlugin {
     //TODO: how many of these really need to be static?
     public static String dataFolder;
     public static AutoPickupPlugin plugin;
+
     public static boolean infinityPick = false;
     public static boolean deleteOnFull = true;
     public static boolean warnOnFull = false;
@@ -245,14 +246,30 @@ public final class AutoPickupPlugin extends JavaPlugin {
         allowBlockGui = MainConfig.getBoolean("Allow BlockGui Permission");
     }
 
+    /**
+     * creates and Itemstack with the parsed in parameters
+     */
     public static ItemStack easyItem(String name, Material material, int amount, int durability, String... lore) {
         ItemStack is = new ItemStack(material);
-        if (durability > 0) is.setDurability((short) durability);
-        if (amount > 1) is.setAmount(amount);
-        if (is.getItemMeta() != null) {
+        if (durability > 0)
+        {
+            is.setDurability((short) durability);
+        }
+
+        if (amount > 1) 
+        {
+            is.setAmount(amount);
+        }
+
+        if (is.getItemMeta() != null)
+        {
             ItemMeta im = is.getItemMeta();
-            if (name != null) im.setDisplayName(name);
-            if (lore != null) {
+            if (name != null)
+            {
+                im.setDisplayName(name);
+            }
+            if (lore != null)
+            {
                 ArrayList<String> loreList = new ArrayList<>();
                 Collections.addAll(loreList, lore);
                 im.setLore(loreList);
@@ -264,6 +281,7 @@ public final class AutoPickupPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        //TODO: is this really everything?
         if (FortuneData != null) FortuneData.save();
     }
 
@@ -272,39 +290,55 @@ public final class AutoPickupPlugin extends JavaPlugin {
         plugin = this;
         dataFolder = this.getDataFolder().getAbsolutePath();
         reloadConfigs();
+
+        //add the event listeners
         getServer().getPluginManager().registerEvents(new MainListener(), this);
+
+        //do these require other plugins
+        //TODO: check if this needs to look for a plugin
         getServer().getPluginManager().registerEvents(new MythicMobListener(), this);
-        ArrayList<String> plugins = new ArrayList<>();
+        //TODO: check if this needs to look for a plugin
         getServer().getPluginManager().registerEvents(new TokenEnchantListener(), this);
+
+        ArrayList<String> plugins = new ArrayList<>();
+
+        //check for the other plugins we talk to
         if (getServer().getPluginManager().getPlugin("QuickSell") != null) {
             plugins.add("QuickSell");
             usingQuickSell = true;
         }
+
         if (getServer().getPluginManager().getPlugin("StackableItems") != null) {
             plugins.add("StackableItems");
             usingStackableItems = true;
         }
+
         if (getServer().getPluginManager().getPlugin("AutoSell") != null) {
             plugins.add("AutoSell");
             usingAutoSell = true;
         }
+
         if (getServer().getPluginManager().getPlugin("MythicDrops") != null) {
             plugins.add("MythicDrops");
             getServer().getPluginManager().registerEvents(new MythicListener(), this);
         }
+
         if (getServer().getPluginManager().getPlugin("MyPet") != null) {
             plugins.add("MyPet");
             if (!plugins.contains("MythicDrops"))
                 getServer().getPluginManager().registerEvents(new MythicListener(), this);
         }
+
         if (getServer().getPluginManager().getPlugin("FortuneBlocks") != null) {
             plugins.add("FortuneBlocks");
             usingCompat = true;
         }
+
         if (getServer().getPluginManager().getPlugin("PrisonGems") != null) {
             plugins.add("PrisonGems");
             usingPrisonGems = true;
         }
+
         if (!plugins.isEmpty()) {
             String message = "[AutoPickup] Detected you are using ";
             for (String pName : plugins) {
@@ -313,6 +347,7 @@ public final class AutoPickupPlugin extends JavaPlugin {
             }
             Bukkit.getLogger().info(message);
         }
+
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p.hasPermission("AutoPickup.enabled")) AutoPickupPlugin.autoPickup.add(p.getName());
             if (p.hasPermission("AutoBlock.enabled")) AutoPickupPlugin.autoBlock.add(p.getName());
