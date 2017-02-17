@@ -356,25 +356,45 @@ public final class AutoPickupPlugin extends JavaPlugin {
         }
     }
 
-    @SuppressWarnings("Contract")
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (args.length > 0 && (args[0].equalsIgnoreCase("rl") || args[0].equalsIgnoreCase("reload"))) {
+        if (args.length > 0
+            && (args[0].equalsIgnoreCase("rl")
+            || args[0].equalsIgnoreCase("reload")))
+        {
             reloadCommand(sender);
             return true;
         }
+
+        //commands after here cant be run by console
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatColor.RED + "You need to be a player to do this!");
             return true;
         }
+
         Player p = (Player) sender;
-        if (getBlockedWorlds().contains(p.getWorld())) p.sendMessage(Message.ERROR0BLACKLISTED0WORLD + "");
-        else switch (cmd.getName()) {
+        if (getBlockedWorlds().contains(p.getWorld()))
+        {
+            //AutoPickup is blocked in this world
+            p.sendMessage(Message.ERROR0BLACKLISTED0WORLD + "");
+        } else 
+        {
+            switch (cmd.getName()) {
             case ("AutoSmelt"):
                 if (args.length == 0)
-                    if (!p.hasPermission("AutoSmelt.command")) p.sendMessage(Message.ERROR0NO_PERM + "");
-                    else AutoSmelt.smelt(p);
-                else if (args[0].equalsIgnoreCase("toggle"))
-                    if (!p.hasPermission("AutoSmelt.toggle")) p.sendMessage(Message.ERROR0NO_PERM + "");
+                {
+                    if (!p.hasPermission("AutoSmelt.command")) 
+                    {
+                        p.sendMessage(Message.ERROR0NO_PERM + "");
+                    } else 
+                    {   
+                        AutoSmelt.smelt(p);
+                    }
+                } else if (args[0].equalsIgnoreCase("toggle"))
+                {
+                    if (!p.hasPermission("AutoSmelt.toggle"))
+                    {
+                        p.sendMessage(Message.ERROR0NO_PERM + "");
+                    }
                     else if (autoSmelt.contains(p.getName())) {
                         autoSmelt.remove(p.getName());
                         p.sendMessage(Message.SUCCESS0TOGGLE0SMELT_OFF + "");
@@ -382,8 +402,11 @@ public final class AutoPickupPlugin extends JavaPlugin {
                         autoSmelt.add(p.getName());
                         p.sendMessage(Message.SUCCESS0TOGGLE0SMELT_ON + "");
                     }
+                }
                 else displayHelp(p);
                 break;
+
+            //TODO: add braces to the rest of this
             case ("AutoPickup"):
                 if (args.length == 0) openGui(p);
                 else if (args[0].equalsIgnoreCase("toggle"))
@@ -426,6 +449,7 @@ public final class AutoPickupPlugin extends JavaPlugin {
                     }
                 else displayHelp(p);
                 break;
+            }
         }
         return true;
     }

@@ -20,24 +20,36 @@ public class AutoBlock {
     private static HashMap<Material, Short> convertDurability = new HashMap<>();
 
     public static HashMap<Integer, ItemStack> addItem(Player p, ItemStack is) {
-        if (!isSpaceAvailable(p, is)) {
+        if (!isSpaceAvailable(p, is)
+            || is == null) {
             return new HashMap<>();
         }
-
-        if (is == null) return new HashMap<>();
+        
         Inventory pInv = p.getInventory();
         Inventory inv = Bukkit.createInventory(p, InventoryType.PLAYER);
+
         inv.setContents(pInv.getContents());
+
         HashMap<Integer, ItemStack> remaining = AutoPickupPlugin.giveItem(p, inv, is);
-        if (!convertTo.containsKey(is.getType())) {
-            pInv.setContents(inv.getContents());
-            p.updateInventory();
+
+        if (!convertTo.containsKey(is.getType()))
+        {
             return remaining;
         }
-        if (remaining.size() == 1 && remaining.values().toArray()[0].equals(is)) return remaining;
+
+        if (remaining.size() == 1 && remaining.values().toArray()[0].equals(is))
+        {
+             return remaining;
+        }
+        
         ItemStack[] newCont = block(p, inv.getContents(), is.getType());
-        if (newCont != null) pInv.setContents(newCont);
-        else pInv.setContents(inv.getContents());
+        if (newCont != null) 
+        {
+            pInv.setContents(newCont);
+        } else 
+        {
+            pInv.setContents(inv.getContents());
+        }
         p.updateInventory();
         return remaining;
     }
@@ -57,26 +69,51 @@ public class AutoBlock {
         boolean changed = true;
         while (changed) {
             changed = false;
+            //loop through the inventory looking for items we can make blocks from
             for (ItemStack is : conts)
-                if (is != null && convertTo.containsKey(is.getType()) && (forceType == null || forceType == is.getType()) && (!is.hasItemMeta() || !is.getItemMeta().hasDisplayName())
-                        && (!convertDurability.containsKey(is.getType()) || is.getDurability() == convertDurability.get(is.getType()))) {
+            {
+                if (is != null
+                    && convertTo.containsKey(is.getType()) 
+                    && (forceType == null || forceType == is.getType())
+                    && (!is.hasItemMeta() || !is.getItemMeta().hasDisplayName())
+                    && (!convertDurability.containsKey(is.getType()) || is.getDurability() == convertDurability.get(is.getType())))
+                {
+                    //we found one, so look to see how many we have
                     Material type = is.getType();
                     int num = 0;
                     int required = convertNum.get(type);
                     for (ItemStack numIS : conts)
-                        if (numIS != null && numIS.getType() == type && (!numIS.hasItemMeta() || !numIS.getItemMeta().hasDisplayName())
-                                && (!convertDurability.containsKey(type) || numIS.getDurability() == convertDurability.get(type)))
+                    {
+                        if (numIS != null
+                            && numIS.getType() == type
+                            && (!numIS.hasItemMeta() || !numIS.getItemMeta().hasDisplayName())
+                            && (!convertDurability.containsKey(type) || numIS.getDurability() == convertDurability.get(type)))
+                        {
+                            //count how many items we have
                             num += numIS.getAmount();
-                    if (num <= required) continue;
+                        }
+                    }
+
+                    //for some reason lapis needs +1
+                    if (num <= required && !type.equals(Material.INK_SACK)
+                        || num <= required + 1 && type.equals(Material.INK_SACK))
+
+                    {
+                        continue;
+                    }
+
                     Material convertTo = AutoBlock.convertTo.get(type);
                     changed = true;
                     totalChanged = true;
                     int toMake = num / required;
-                    num = toMake * required;
-                    int tobeUsed = num;
+                    int tobeUsed = toMake * required;
                     for (int i = 0; i < conts.length; i++)
-                        if (conts[i] != null && conts[i].getType() == type && (!conts[i].hasItemMeta() || !conts[i].getItemMeta().hasDisplayName())
-                                && (!convertDurability.containsKey(type) || conts[i].getDurability() == convertDurability.get(type)))
+                    {
+                        if (conts[i] != null
+                            && conts[i].getType() == type
+                            && (!conts[i].hasItemMeta() || !conts[i].getItemMeta().hasDisplayName())
+                            && (!convertDurability.containsKey(type) || conts[i].getDurability() == convertDurability.get(type)))
+                        {
                             if (conts[i].getAmount() > tobeUsed) {
                                 conts[i].setAmount(conts[i].getAmount() - tobeUsed);
                                 break;
@@ -84,11 +121,14 @@ public class AutoBlock {
                                 tobeUsed -= conts[i].getAmount();
                                 conts[i] = null;
                             }
+                        }
+                    }
 
                     Inventory inv = Bukkit.createInventory(null, InventoryType.PLAYER);
-//                    while (toMake > type.getMaxStackSize()) toMake -= type.getMaxStackSize();
                     ItemStack toAdd = new ItemStack(convertTo);
-                    if (isSpaceAvailable(p, toAdd)) {
+
+                    if (isSpaceAvailable(p, toAdd))
+                    {
                         inv.setContents(conts);
                         toAdd.setAmount(type.getMaxStackSize());
                         while (toMake > convertTo.getMaxStackSize()) {
@@ -104,6 +144,7 @@ public class AutoBlock {
                         //p.sendTitle(ChatColor.RED + "Inventory is Full!", ChatColor.GOLD + "/fullnotify to disable", 1, 15, 5);
                     }
                 }
+            }
         }
         if (totalChanged) return conts;
         return null;
@@ -118,12 +159,15 @@ public class AutoBlock {
         convertNum.put(Material.REDSTONE, 9);
         convertTo.put(Material.DIAMOND, Material.DIAMOND_BLOCK);
         convertNum.put(Material.DIAMOND, 9);
+
         convertTo.put(Material.INK_SACK, Material.LAPIS_BLOCK);
         convertNum.put(Material.INK_SACK, 9);
         convertDurability.put(Material.INK_SACK, (short) 4);
+
         convertTo.put(Material.COAL, Material.COAL_BLOCK);
         convertNum.put(Material.COAL, 9);
         convertDurability.put(Material.COAL, (short) 0);
+
         convertTo.put(Material.EMERALD, Material.EMERALD_BLOCK);
         convertNum.put(Material.EMERALD, 9);
         convertTo.put(Material.GOLD_INGOT, Material.GOLD_BLOCK);
