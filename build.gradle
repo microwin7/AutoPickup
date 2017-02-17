@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'maven'
 
 group = 'me.MnMaxon'
-version = '3.8'
+version = '3.8.1'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
