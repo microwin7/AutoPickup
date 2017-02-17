@@ -20,6 +20,7 @@ public class AutoBlock {
     private static HashMap<Material, Short> convertDurability = new HashMap<>();
 
     public static HashMap<Integer, ItemStack> addItem(Player p, ItemStack is) {
+<<<<<<< HEAD
         if (!isSpaceAvailable(p, is)
             || is == null) {
             return new HashMap<>();
@@ -50,15 +51,31 @@ public class AutoBlock {
         {
             pInv.setContents(inv.getContents());
         }
+=======
+        if (is == null) return new HashMap<>();
+        Inventory pInv = p.getInventory();
+        Inventory inv = Bukkit.createInventory(p, 36);
+        inv.setStorageContents(pInv.getStorageContents());
+        HashMap<Integer, ItemStack> remaining = AutoPickupPlugin.giveItem(p, inv, is);
+        if (!convertTo.containsKey(is.getType())) {
+            pInv.setStorageContents(inv.getStorageContents());
+            p.updateInventory();
+            return remaining;
+        }
+        if (remaining.size() == 1 && remaining.values().toArray()[0].equals(is)) return remaining;
+        ItemStack[] newCont = block(p, inv.getStorageContents(), is.getType());
+        if (newCont != null) pInv.setStorageContents(newCont);
+        else pInv.setStorageContents(inv.getStorageContents());
+>>>>>>> f3e4793ed3b5c38fafe54dfde686df56543361cd
         p.updateInventory();
         return remaining;
     }
 
     public static void block(Player p) {
-        ItemStack[] newConts = block(p, p.getInventory().getContents(), null);
+        ItemStack[] newConts = block(p, p.getInventory().getStorageContents(), null);
         if (newConts == null) p.sendMessage(Message.ERROR0BLOCKED_INVENTORY + "");
         else {
-            p.getInventory().setContents(newConts);
+            p.getInventory().setStorageContents(newConts);
             p.updateInventory();
             p.sendMessage(Message.SUCCESS0BLOCKED_INVENTORY + "");
         }
@@ -124,6 +141,7 @@ public class AutoBlock {
                         }
                     }
 
+<<<<<<< HEAD
                     Inventory inv = Bukkit.createInventory(null, InventoryType.PLAYER);
                     ItemStack toAdd = new ItemStack(convertTo);
 
@@ -136,13 +154,19 @@ public class AutoBlock {
                             toMake -= type.getMaxStackSize();
                         }
                         toAdd.setAmount(toMake);
+=======
+                    Inventory inv = Bukkit.createInventory(null, 36);
+                    ItemStack toAdd = new ItemStack(convertTo);
+                    inv.setStorageContents(conts);
+                    toAdd.setAmount(type.getMaxStackSize());
+                    while (toMake > convertTo.getMaxStackSize()) {
+>>>>>>> f3e4793ed3b5c38fafe54dfde686df56543361cd
                         AutoPickupPlugin.giveItem(p, inv, toAdd);
-                        conts = inv.getContents();
-                    } else {
-                        //Only enable this when we have a way for users to disable this alert TODO: Implement this
-                        //p.playSound(p.getLocation(), Sound.BLOCK_NOTE_PLING, 1.0f, 1.0f);
-                        //p.sendTitle(ChatColor.RED + "Inventory is Full!", ChatColor.GOLD + "/fullnotify to disable", 1, 15, 5);
+                        toMake -= type.getMaxStackSize();
                     }
+                    toAdd.setAmount(toMake);
+                    AutoPickupPlugin.giveItem(p, inv, toAdd);
+                    conts = inv.getStorageContents();
                 }
             }
         }
@@ -179,7 +203,7 @@ public class AutoBlock {
         boolean space = false;
         for (int i = 0; i <= 35; i++) {
             ItemStack slotItem = player.getInventory().getItem(i);
-            if (slotItem == null || ((slotItem.getType() == item.getType()) && item.getAmount() + slotItem.getAmount() <= player.getInventory().getMaxStackSize())) {
+            if (slotItem == null || ((slotItem.getType() == item.getType()) && item.getAmount() + slotItem.getAmount() <= slotItem.getMaxStackSize())) {
                 space = true;
             }
         }
