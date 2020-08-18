@@ -133,36 +133,39 @@ public class AutoBlock
                     toMake--;
                     tobeUsed -= required;
                 }
-
-                //make sure we dont make more then we can hold
-                if(space < toMake)
-                {
-                    tobeUsed = space * required;
-                    toMake = space;
-                }
-
-                //go backward through the inventory
-                for (int i = conts.length - 1; i >= 0; i--)
-                {
-                    if (conts[i] != null
-                        && conts[i].getType() == type
-                        && (!conts[i].hasItemMeta() || !conts[i].getItemMeta().hasDisplayName())
-                        && (!convertDurability.containsKey(type) || conts[i].getDurability() == convertDurability.get(type)))
+                //zero block creation fix
+                if(toMake != 0 && tobeUsed != 0){
+                    
+                    //make sure we dont make more then we can hold
+                    if(space < toMake)
                     {
-                        //remove the items we are putting into blocks
-                        if (conts[i].getAmount() > tobeUsed)
+                        tobeUsed = space * required;
+                        toMake = space;
+                    }
+
+                    //go backward through the inventory
+                    for (int i = conts.length - 1; i >= 0; i--)
+                    {
+                        if (conts[i] != null
+                            && conts[i].getType() == type
+                            && (!conts[i].hasItemMeta() || !conts[i].getItemMeta().hasDisplayName())
+                            && (!convertDurability.containsKey(type) || conts[i].getDurability() == convertDurability.get(type)))
                         {
-                            //this stack has enough
-                            conts[i].setAmount(conts[i].getAmount() - tobeUsed);
-                            break;
-                        } else
-                        {
-                            //we need more then this stack has so take it all and remove it from the player
-                            tobeUsed -= conts[i].getAmount();
-                            conts[i] = null;
+                            //remove the items we are putting into blocks
+                            if (conts[i].getAmount() > tobeUsed)
+                            {
+                                //this stack has enough
+                                conts[i].setAmount(conts[i].getAmount() - tobeUsed);
+                                break;
+                            } else
+                            {
+                                //we need more then this stack has so take it all and remove it from the player
+                                tobeUsed -= conts[i].getAmount();
+                                conts[i] = null;
+                            }
                         }
                     }
-                }
+                } else break;
 
                 p.getInventory().setStorageContents(conts);
                 //create an inventory to hold our items
